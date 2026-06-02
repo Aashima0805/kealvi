@@ -83,7 +83,31 @@ export default function QuestionsList({
     setHasMore(data.hasMore);
     setLoading(false);
   }
+  const [pollOptions, setPollOptions] = useState([
+  { id: 1, text: "React", votes: 0 },
+  { id: 2, text: "Next.js", votes: 0 },
+]);
 
+async function vote(optionId: number)
+{
+  await fetch("/api/vote", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      poll_option_id: optionId,
+    }),
+  });
+
+  setPollOptions((options) =>
+    options.map((option) =>
+      option.id === optionId
+        ? { ...option, votes: option.votes + 1 }
+        : option
+    )
+  );
+}
   return (
     <div className="space-y-4">
       <p className="text-sm text-gray-500">
@@ -108,7 +132,21 @@ export default function QuestionsList({
         placeholder="Search questions…"
         className="w-full rounded-md border px-3 py-2"
       />
+      <div className="rounded-lg border p-4 space-y-3">
+  <h2 className="text-xl font-semibold">
+    Which framework do you like?
+  </h2>
 
+  {pollOptions.map((option) => (
+    <button
+      key={option.id}
+      onClick={() => vote(option.id)}
+      className="w-full rounded-md border p-3 text-left"
+    >
+      {option.text} — {option.votes} votes
+    </button>
+  ))}
+</div>
       <ul className="space-y-3">
         {questions.map((q) => (
           <li
