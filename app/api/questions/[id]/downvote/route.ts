@@ -5,10 +5,9 @@ export async function POST(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: questionId } = await params;
-  const { voterId, value } = await req.json(); 
-  // value = 1 (upvote) OR -1 (downvote)
+  const { voterId } = await req.json();
 
-  // check existing vote
+  // Check if vote already exists
   const { data: existing } = await supabase
     .from("votes")
     .select("*")
@@ -17,10 +16,11 @@ export async function POST(
     .single();
 
   if (!existing) {
+    // first time vote → insert
     const { error } = await supabase.from("votes").insert({
       question_id: questionId,
       voter_id: voterId,
-      value,
+      value: -1,
     });
 
     if (error) {
@@ -30,9 +30,10 @@ export async function POST(
     return Response.json({ ok: true });
   }
 
+  // already voted → UPDATE instead of insert
   const { error } = await supabase
     .from("votes")
-    .update({ value })
+    .update({ value: -1 })
     .eq("question_id", questionId)
     .eq("voter_id", voterId);
 

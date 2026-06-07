@@ -1,19 +1,28 @@
-import QuestionsList from "./questions-list";
-import { getQuestionsPage } from "@/lib/questions";
-
-// Render on every request (don't cache/prerender) so new questions show up.
-export const dynamic = "force-dynamic";
-
-const PAGE_SIZE = 10;
-
-// Server component — runs only on the server, awaits the data, renders to HTML.
-export default async function Page() {
-  const { questions, hasMore } = await getQuestionsPage(0, PAGE_SIZE);
-
+export default function Page() {
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="mb-4 text-2xl font-medium">Live Q&amp;A</h1>
-      <QuestionsList initialQuestions={questions} initialHasMore={hasMore} />
-    </main>
+    <div className="space-y-4">
+      <h1 className="text-4xl font-bold">
+        Welcome 👋
+      </h1>
+
+      <p className="text-gray-500 dark:text-gray-300">
+        This is a Live Q&A platform where users can ask questions,
+        vote, and get AI-powered answers instantly.
+      </p>
+
+      <div className="grid gap-4 mt-6">
+        <div className="p-4 border rounded-xl">
+          ❓ Ask questions and get community answers
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          📊 Create polls and vote in real time
+        </div>
+
+        <div className="p-4 border rounded-xl">
+          🤖 AI helps refine and answer questions
+        </div>
+      </div>
+    </div>
   );
 }
