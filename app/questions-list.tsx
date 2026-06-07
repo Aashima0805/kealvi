@@ -22,14 +22,14 @@ export default function QuestionsList({
   const [query, setQuery] = useState("");
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
-const [aiAnswers, setAiAnswers] = useState<Record<string, string>>({});
-const [loadingAI, setLoadingAI] = useState<string | null>(null);
+  const [aiAnswers, setAiAnswers] = useState<Record<string, string>>({});
+  const [loadingAI, setLoadingAI] = useState<string | null>(null);
   const [hydrated, setHydrated] = useState(false);
-  useEffect(() => setHydrated(true), []);
-
-  // EDIT STATES
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
+  const [toast, setToast] = useState("");
+
+  useEffect(() => setHydrated(true), []);
 
   // SEARCH
   useEffect(() => {
@@ -37,87 +37,66 @@ const [loadingAI, setLoadingAI] = useState<string | null>(null);
       const url = query
         ? `/api/questions?q=${encodeURIComponent(query)}`
         : `/api/questions`;
-
       const res = await fetch(url);
       const data = await res.json();
       setQuestions(data.questions);
       setHasMore(data.hasMore);
     }, 300);
-
     return () => clearTimeout(id);
   }, [query]);
 
   // AI REFINE
   async function refineQuestion() {
     if (!draft.trim()) return;
-
     const res = await fetch("/api/refine-question", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question: draft }),
     });
-
     const data = await res.json();
     setDraft(data.refined.trim());
+    showToast("Question refined! ✨");
   }
 
-  // ASK QUESTION
+  // SUBMIT
   async function submit() {
     if (!draft.trim()) return;
-
     const res = await fetch("/api/questions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: draft }),
     });
-
     const created = await res.json();
-
-    if (!res.ok) {
-      alert(created.error);
-      return;
-    }
-
+    if (!res.ok) { showToast(created.error); return; }
     setQuestions((qs) => [{ ...created, votes: 0 }, ...qs]);
     setDraft("");
+    showToast("Question posted! 🎉");
   }
 
   // UPVOTE
   async function upvote(id: string) {
     setQuestions((qs) =>
-      qs.map((q) =>
-        q.id === id ? { ...q, votes: q.votes + 1 } : q
-      )
+      qs.map((q) => q.id === id ? { ...q, votes: q.votes + 1 } : q)
     );
-
     const res = await fetch(`/api/questions/${id}/vote`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ voterId: getVoterId() }),
     });
-
     if (!res.ok) {
       setQuestions((qs) =>
-        qs.map((q) =>
-          q.id === id ? { ...q, votes: q.votes - 1 } : q
-        )
+        qs.map((q) => q.id === id ? { ...q, votes: q.votes - 1 } : q)
       );
-      alert("Already voted");
+      showToast("Already voted!");
     }
   }
 
   // DELETE
   async function deleteQuestion(id: string) {
-    const res = await fetch(`/api/questions/${id}/delete`, {
-      method: "DELETE",
-    });
-
-    if (!res.ok) {
-      alert("Delete failed");
-      return;
-    }
-
+    const res = await fetch(`/api/questions/${id}/delete`, { method: "DELETE" });
+    if (!res.ok) { showToast("Delete failed"); return; }
     setQuestions((qs) => qs.filter((q) => q.id !== id));
+    showToast("Deleted.");
   }
 
   // EDIT SAVE
@@ -127,200 +106,477 @@ const [loadingAI, setLoadingAI] = useState<string | null>(null);
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ body: editText }),
     });
-
     const data = await res.json();
-
-    if (!res.ok) {
-      alert("Update failed");
-      return;
-    }
-
+    if (!res.ok) { showToast("Update failed"); return; }
     setQuestions((qs) =>
-      qs.map((q) =>
-        q.id === id ? { ...q, body: data.body } : q
-      )
+      qs.map((q) => q.id === id ? { ...q, body: data.body } : q)
     );
-
     setEditingId(null);
     setEditText("");
+    showToast("Updated!");
   }
 
   // LOAD MORE
   async function loadMore() {
     setLoading(true);
-
-    const res = await fetch(
-      `/api/questions?offset=${questions.length}`
-    );
-
+    const res = await fetch(`/api/questions?offset=${questions.length}`);
     const data = await res.json();
-
     setQuestions((qs) => [...qs, ...data.questions]);
     setHasMore(data.hasMore);
     setLoading(false);
   }
 
- async function askAI(id: string, question: string) {
-  // IF answer already exists → remove it (toggle off)
-  if (aiAnswers[id]) {
-    setAiAnswers((prev) => {
-      const updated = { ...prev };
-      delete updated[id];
-      return updated;
+  // ASK AI
+  async function askAI(id: string, question: string) {
+    if (aiAnswers[id]) {
+      setAiAnswers((prev) => { const u = { ...prev }; delete u[id]; return u; });
+      return;
+    }
+    setLoadingAI(id);
+    const res = await fetch("/api/ai-answer", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
     });
-    return;
+    const data = await res.json();
+    setAiAnswers((prev) => ({ ...prev, [id]: data.answer }));
+    setLoadingAI(null);
+    showToast("AI answered! 🤖");
   }
 
-  // otherwise fetch AI answer
-  setLoadingAI(id);
+  function showToast(msg: string) {
+    setToast(msg);
+    setTimeout(() => setToast(""), 2500);
+  }
 
-  const res = await fetch("/api/ai-answer", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question }),
-  });
+  const fmt = (s: string) =>
+    new Date(s).toLocaleString("en-IN", {
+      day: "numeric", month: "short",
+      hour: "2-digit", minute: "2-digit",
+    });
 
-  const data = await res.json();
-
-  setAiAnswers((prev) => ({
-    ...prev,
-    [id]: data.answer,
-  }));
-
-  setLoadingAI(null);
-}
   return (
-    <div className="space-y-6">
-      <p className="text-sm text-gray-500">
-        {hydrated ? "Interactive ✓" : "Loading interactivity…"}
-      </p>
+    <div style={{ paddingBottom: "60px" }}>
 
-      {/* INPUT */}
-      <div className="flex gap-3 p-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm">
-        <input
+      {/* Status */}
+      {!hydrated && (
+        <p style={{ fontSize: "12px", color: "var(--muted2)", marginBottom: "12px" }}>
+          Loading interactivity…
+        </p>
+      )}
+
+      {/* ── Ask bar ── */}
+      <SectionTitle>Ask a question</SectionTitle>
+
+      <div style={{ position: "relative", marginBottom: "16px" }}>
+        <textarea
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
-          placeholder="Ask a question…"
-          className="flex-1 bg-transparent outline-none"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          placeholder="What's on your mind? Ask anything…"
+          rows={2}
+          style={{
+            width: "100%",
+            background: "var(--surface)",
+            border: "1px solid var(--border2)",
+            borderRadius: "16px",
+            padding: "16px 160px 16px 20px",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "15px",
+            color: "var(--text)",
+            outline: "none",
+            resize: "none",
+            lineHeight: 1.5,
+            transition: "border-color 0.2s",
+          }}
+          onFocus={(e) => (e.target.style.borderColor = "var(--brand)")}
+          onBlur={(e) => (e.target.style.borderColor = "var(--border2)")}
         />
-
-        <button onClick={refineQuestion} className="px-3 py-2 rounded-xl border border-[var(--border)] transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md">
-          ✨ AI Refine
-        </button>
-
-        <button onClick={submit} className="px-3 py-2 rounded-xl border border-[var(--border)] transition-all duration-200 hover:scale-105 active:scale-95 hover:shadow-md">
-          Ask
-        </button>
+        <div style={{
+          position: "absolute", bottom: "14px", right: "14px",
+          display: "flex", gap: "8px",
+        }}>
+          <button
+            onClick={refineQuestion}
+            style={{
+              padding: "7px 14px", borderRadius: "9px", fontSize: "12.5px",
+              fontWeight: 500, cursor: "pointer",
+              border: "1px solid rgba(123,97,255,0.35)",
+              background: "rgba(123,97,255,0.12)", color: "#a99fff",
+              fontFamily: "'DM Sans', sans-serif", transition: "all 0.18s",
+            }}
+          >
+            ✨ Refine
+          </button>
+          <button
+            onClick={submit}
+            style={{
+              padding: "7px 18px", borderRadius: "9px", fontSize: "12.5px",
+              fontWeight: 600, cursor: "pointer", border: "none",
+              background: "linear-gradient(135deg, var(--brand), #ff6b35)",
+              color: "#fff", fontFamily: "'DM Sans', sans-serif",
+              transition: "all 0.18s",
+            }}
+          >
+            Ask →
+          </button>
+        </div>
       </div>
 
-      {/* SEARCH */}
+      {/* ── Search ── */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search questions…"
-        className="w-full px-4 py-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        style={{
+          width: "100%",
+          background: "var(--surface)",
+          border: "1px solid var(--border2)",
+          borderRadius: "12px",
+          padding: "11px 16px",
+          fontFamily: "'DM Sans', sans-serif",
+          fontSize: "14px",
+          color: "var(--text)",
+          outline: "none",
+          marginBottom: "28px",
+          transition: "border-color 0.2s",
+        }}
+        onFocus={(e) => (e.target.style.borderColor = "var(--brand2)")}
+        onBlur={(e) => (e.target.style.borderColor = "var(--border2)")}
       />
 
-      {/* QUESTIONS */}
-      <ul className="space-y-3">
-        {questions.map((q) => (
+      {/* ── Questions ── */}
+      <SectionTitle>
+        Questions ({questions.length})
+      </SectionTitle>
+
+      <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+        {questions.map((q, i) => (
           <li
-  key={q.id}
-  className="group flex items-start justify-between gap-5 bg-[var(--card)] border border-[var(--border)] rounded-3xl p-6 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
->
-  {/* LEFT: VOTES */}
-  <div className="flex flex-col items-center text-sm min-w-[40px]">
-    <button onClick={() => upvote(q.id)} className="transition-all duration-150 hover:scale-105 active:scale-95">▲</button>
-    <span className="text-sm text-[var(--muted)]">{q.votes}</span>
-    <button
-      onClick={() =>
-        setQuestions((qs) =>
-          qs.map((item) =>
-            item.id === q.id
-              ? { ...item, votes: Math.max(0, item.votes - 1) }
-              : item
-          )
-        )
-      } className="text-lg transition-all duration-150 hover:scale-125 active:scale-95 text-gray-500 hover:text-blue-500"
-    >
-      ▼
-    </button>
-  </div>
+            key={q.id}
+            className="fade-up"
+            style={{
+              background: "var(--surface)",
+              border: "1px solid var(--border)",
+              borderRadius: "16px",
+              padding: "18px 20px",
+              marginBottom: "10px",
+              transition: "all 0.2s",
+              animationDelay: `${i * 0.04}s`,
+            }}
+            onMouseEnter={(e) => {
+              const d = e.currentTarget as HTMLLIElement;
+              d.style.borderColor = "var(--border2)";
+              d.style.background = "var(--surface2)";
+            }}
+            onMouseLeave={(e) => {
+              const d = e.currentTarget as HTMLLIElement;
+              d.style.borderColor = "var(--border)";
+              d.style.background = "var(--surface)";
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
 
-  {/* MIDDLE: QUESTION */}
-  <div className="flex-1">
-    {editingId === q.id ? (
-      <div className="flex gap-2">
-        <input
-          value={editText}
-          onChange={(e) => setEditText(e.target.value)}
-          className="w-full border px-2 py-1 rounded"
-        />
-        <button onClick={() => saveEdit(q.id)} className="transition-all duration-150 hover:scale-105 active:scale-95">💾</button>
-        <button onClick={() => setEditingId(null)} className="transition-all duration-150 hover:scale-105 active:scale-95">❌</button>
-      </div>
-    ) : (
-      <>
-        <p className="text-lg font-semibold leading-relaxed break-words tracking-tight">{q.body}</p>
+              {/* Vote column */}
+              <div style={{
+                display: "flex", flexDirection: "column",
+                alignItems: "center", gap: "4px", minWidth: "36px",
+              }}>
+                <VoteBtn
+                  color="var(--brand)"
+                  hoverBg="rgba(255,77,109,0.1)"
+                  onClick={() => upvote(q.id)}
+                >▲</VoteBtn>
 
-        {/* AI BUTTON */}
-        <button
-          onClick={() => askAI(q.id, q.body)}
-          className="mt-3 inline-flex items-center gap-1 text-xs px-3 py-1 rounded-full border border-[var(--border)] bg-white dark:bg-gray-900 hover:scale-105 transition"
-        >
-          🤖 {loadingAI === q.id ? "Thinking..." : "Ask AI"}
-        </button>
+                <span style={{
+                  fontFamily: "'Syne', sans-serif",
+                  fontSize: "14px", fontWeight: 700,
+                  color: "var(--text)",
+                }}>{q.votes}</span>
 
-        {/* AI ANSWER */}
-        {aiAnswers[q.id] && (
-          <p className="text-sm mt-3 pl-3 border-l-2 border-blue-400 text-[var(--muted)] leading-relaxed">
-            {aiAnswers[q.id]}
-          </p>
-        )}
-      </>
-    )}
+                <VoteBtn
+                  color="var(--brand2)"
+                  hoverBg="rgba(123,97,255,0.1)"
+                  onClick={() =>
+                    setQuestions((qs) =>
+                      qs.map((item) =>
+                        item.id === q.id
+                          ? { ...item, votes: Math.max(0, item.votes - 1) }
+                          : item
+                      )
+                    )
+                  }
+                >▼</VoteBtn>
+              </div>
 
-    {/* TIMESTAMP */}
-    <p className="text-xs text-[var(--muted)] mt-2">
-      {new Date(q.created_at).toLocaleString("en-IN")}
-    </p>
-  </div>
+              {/* Body */}
+              <div style={{ flex: 1 }}>
+                {editingId === q.id ? (
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <input
+                      value={editText}
+                      onChange={(e) => setEditText(e.target.value)}
+                      style={{
+                        flex: 1, background: "var(--surface2)",
+                        border: "1px solid var(--brand2)",
+                        borderRadius: "8px", padding: "8px 12px",
+                        color: "var(--text)",
+                        fontFamily: "'DM Sans', sans-serif",
+                        fontSize: "14px", outline: "none",
+                      }}
+                    />
+                    <IconBtn onClick={() => saveEdit(q.id)}>💾</IconBtn>
+                    <IconBtn onClick={() => setEditingId(null)}>❌</IconBtn>
+                  </div>
+                ) : (
+                  <>
+                    <p style={{
+                      fontSize: "15px", color: "var(--text)",
+                      lineHeight: 1.55, marginBottom: "10px",
+                      fontWeight: 500,
+                    }}>{q.body}</p>
 
-  {/* RIGHT: ACTIONS */}
-  <div className="flex gap-3 text-lg min-w-[40px] justify-end">
-    <button
-      onClick={() => {
-        setEditingId(q.id);
-        setEditText(q.body);
-      }}
-      title="Edit"
-      className="text-xl transition-all duration-200 hover:scale-125 active:scale-95 hover:text-red-500"
-    >
-      ✏️
-    </button>
+                    {/* Meta row */}
+                    <div style={{
+                      display: "flex", alignItems: "center",
+                      gap: "10px", flexWrap: "wrap",
+                    }}>
+                      <span style={{ fontSize: "12px", color: "var(--muted2)" }}>
+                        {fmt(q.created_at)}
+                      </span>
 
-    <button
-      onClick={() => deleteQuestion(q.id)}
-      title="Delete"
-      className="text-xl transition-all duration-200 hover:scale-125 active:scale-95 hover:text-red-500"
-    >
-      🗑
-    </button>
-  </div>
-</li>
+                      {aiAnswers[q.id] && (
+                        <span style={{
+                          fontSize: "11px", padding: "2px 10px",
+                          borderRadius: "100px",
+                          background: "rgba(0,201,167,0.1)",
+                          color: "#00C9A7",
+                          border: "1px solid rgba(0,201,167,0.2)",
+                          fontWeight: 500,
+                        }}>AI answered</span>
+                      )}
+
+                      <div style={{ display: "flex", gap: "6px", marginLeft: "auto" }}>
+                        {/* Ask AI */}
+                        <ActionBtn
+                          hoverColor="#a99fff"
+                          hoverBorder="rgba(123,97,255,0.4)"
+                          hoverBg="rgba(123,97,255,0.08)"
+                          onClick={() => askAI(q.id, q.body)}
+                        >
+                          🤖 {loadingAI === q.id ? "Thinking…" : aiAnswers[q.id] ? "Hide AI" : "Ask AI"}
+                        </ActionBtn>
+
+                        {/* Edit */}
+                        <ActionBtn
+                          hoverColor="var(--text)"
+                          hoverBorder="var(--border2)"
+                          hoverBg="var(--surface)"
+                          onClick={() => { setEditingId(q.id); setEditText(q.body); }}
+                        >✏️ Edit</ActionBtn>
+
+                        {/* Delete */}
+                        <ActionBtn
+                          hoverColor="#ff6b6b"
+                          hoverBorder="rgba(255,107,107,0.4)"
+                          hoverBg="rgba(255,107,107,0.08)"
+                          onClick={() => deleteQuestion(q.id)}
+                        >🗑 Delete</ActionBtn>
+                      </div>
+                    </div>
+
+                    {/* AI loading */}
+                    {loadingAI === q.id && (
+                      <div style={{
+                        marginTop: "14px", padding: "14px 16px",
+                        background: "rgba(123,97,255,0.07)",
+                        border: "1px solid rgba(123,97,255,0.18)",
+                        borderRadius: "12px",
+                      }}>
+                        <div style={{
+                          fontSize: "11px", fontWeight: 600, color: "#a99fff",
+                          textTransform: "uppercase", letterSpacing: "0.8px",
+                          marginBottom: "8px",
+                        }}>AI Answer</div>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          <span className="ai-dot" />
+                          <span className="ai-dot" />
+                          <span className="ai-dot" />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* AI answer */}
+                    {aiAnswers[q.id] && loadingAI !== q.id && (
+                      <div style={{
+                        marginTop: "14px", padding: "14px 16px",
+                        background: "rgba(123,97,255,0.07)",
+                        border: "1px solid rgba(123,97,255,0.18)",
+                        borderRadius: "12px",
+                        fontSize: "14px",
+                        color: "rgba(240,239,248,0.8)",
+                        lineHeight: 1.65,
+                      }}>
+                        <div style={{
+                          fontSize: "11px", fontWeight: 600, color: "#a99fff",
+                          textTransform: "uppercase", letterSpacing: "0.8px",
+                          marginBottom: "8px",
+                        }}>AI Answer</div>
+                        {aiAnswers[q.id]}
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          </li>
         ))}
       </ul>
 
-      {/* LOAD MORE */}
+      {/* Load more */}
       {hasMore && (
         <button
           onClick={loadMore}
           disabled={loading}
-          className="mx-auto block px-5 py-2 rounded-xl border border-[var(--border)] bg-[var(--card)] hover:scale-105 transition"
+          style={{
+            display: "block", margin: "12px auto 0",
+            padding: "11px 32px", borderRadius: "12px",
+            border: "1px solid var(--border2)",
+            background: "transparent", color: "var(--muted)",
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: "13.5px", fontWeight: 500,
+            cursor: loading ? "not-allowed" : "pointer",
+            transition: "all 0.18s",
+          }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text)"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)"; }}
         >
           {loading ? "Loading…" : "Load more"}
         </button>
       )}
+
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: "fixed", bottom: "28px", left: "50%",
+          transform: "translateX(-50%)",
+          background: "var(--surface2)",
+          border: "1px solid var(--border2)",
+          borderRadius: "12px", padding: "10px 22px",
+          fontSize: "13.5px", fontWeight: 500,
+          color: "var(--text)", zIndex: 999, whiteSpace: "nowrap",
+        }}>
+          {toast}
+        </div>
+      )}
     </div>
+  );
+}
+
+/* ── tiny helpers ── */
+
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{
+      fontFamily: "'Syne', sans-serif",
+      fontSize: "12px", fontWeight: 600,
+      letterSpacing: "1.5px", color: "var(--muted2)",
+      textTransform: "uppercase",
+      margin: "36px 0 14px",
+      display: "flex", alignItems: "center", gap: "12px",
+    }}>
+      {children}
+      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+    </div>
+  );
+}
+
+function VoteBtn({ children, color, hoverBg, onClick }: {
+  children: React.ReactNode;
+  color: string;
+  hoverBg: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: "32px", height: "32px", borderRadius: "8px",
+        border: "1px solid var(--border2)", background: "transparent",
+        cursor: "pointer", color: "var(--muted)", fontSize: "15px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.borderColor = color;
+        b.style.color = color;
+        b.style.background = hoverBg;
+      }}
+      onMouseLeave={(e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.borderColor = "var(--border2)";
+        b.style.color = "var(--muted)";
+        b.style.background = "transparent";
+      }}
+    >{children}</button>
+  );
+}
+
+function ActionBtn({ children, hoverColor, hoverBorder, hoverBg, onClick }: {
+  children: React.ReactNode;
+  hoverColor: string;
+  hoverBorder: string;
+  hoverBg: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        padding: "5px 12px", fontSize: "11.5px", borderRadius: "8px",
+        border: "1px solid var(--border2)", background: "transparent",
+        color: "var(--muted)", cursor: "pointer",
+        fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.color = hoverColor;
+        b.style.borderColor = hoverBorder;
+        b.style.background = hoverBg;
+      }}
+      onMouseLeave={(e) => {
+        const b = e.currentTarget as HTMLButtonElement;
+        b.style.color = "var(--muted)";
+        b.style.borderColor = "var(--border2)";
+        b.style.background = "transparent";
+      }}
+    >{children}</button>
+  );
+}
+
+function IconBtn({ children, onClick }: {
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: "32px", height: "32px", borderRadius: "8px",
+        border: "1px solid var(--border2)", background: "transparent",
+        cursor: "pointer", fontSize: "14px",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        transition: "all 0.15s",
+      }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--surface2)"; }}
+      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+    >{children}</button>
   );
 }

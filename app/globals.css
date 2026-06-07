@@ -1,156 +1,94 @@
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
-  --bg: linear-gradient(135deg, #dbeafe, #e0f2fe, #ede9fe);
-  --card: rgba(255, 255, 255, 0.75);
+  /* 🌊 Brand palette (blue-focused fantasy) */
+  --brand: #0861f0;
+  --brand2: #5254d7;
+  --brand3: #06b6d4;
+
+  /* ☁️ Soft blue-tinted background */
+  --bg: linear-gradient(135deg, #eff6ff, #f0f9ff, #eef2ff);
+
+  /* 🧊 Glass surfaces */
+  --surface: rgba(255, 255, 255, 0.75);
+  --surface2: rgba(255, 255, 255, 0.9);
+
+  /* 🔲 Borders (cool blue glow) */
+  --border: rgba(59, 130, 246, 0.18);
+  --border2: rgba(99, 102, 241, 0.18);
+
+  /* ✍️ Text system */
   --text: #0f172a;
-  --muted: #475569;
-  --border: rgba(59, 130, 246, 0.2);
+  --muted: rgba(15, 23, 42, 0.65);
+  --muted2: rgba(15, 23, 42, 0.45);
 }
 
-.dark {
-  --bg: #0b1220;
-  --card: #111827;
-  --text: #e5e7eb;
-  --muted: #94a3b8;
-  --border: #1f2937;
-}
+* { box-sizing: border-box; }
 
 body {
   background: var(--bg);
-  background-attachment: fixed;
-  min-height: 100vh;
   color: var(--text);
-  font-family: ui-sans-serif, system-ui, -apple-system;
-  transition: all 0.3s ease;
+  font-family: 'DM Sans', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-body::before {
-  content: "";
+.blob {
   position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.15), transparent 40%),
-              radial-gradient(circle at 80% 30%, rgba(139,92,246,0.15), transparent 40%),
-              radial-gradient(circle at 50% 80%, rgba(14,165,233,0.12), transparent 40%);
-  pointer-events: none;
-  z-index: -1;
-}
-
-@keyframes floatBlob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(40px, -60px) scale(1.1);
-  }
-  66% {
-    transform: translate(-30px, 40px) scale(0.95);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-.particles {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-/* Blob 1 */
-.particles::before {
-  content: "";
-  position: absolute;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(59,130,246,0.35), transparent 60%);
-  top: 10%;
-  left: 15%;
   border-radius: 50%;
-  filter: blur(40px);
-  animation: floatBlob 12s ease-in-out infinite;
-}
-
-/* Blob 2 */
-.particles::after {
-  content: "";
-  position: absolute;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(139,92,246,0.30), transparent 60%);
-  bottom: 10%;
-  right: 15%;
-  border-radius: 50%;
-  filter: blur(50px);
-  animation: floatBlob 15s ease-in-out infinite reverse;
-}
-
-
-@keyframes auroraMove {
-  0% {
-    transform: translate(-10%, -10%) rotate(0deg);
-  }
-  50% {
-    transform: translate(10%, 10%) rotate(180deg);
-  }
-  100% {
-    transform: translate(-10%, -10%) rotate(360deg);
-  }
-}
-
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  overflow: hidden;
+  filter: blur(90px);
+  opacity: 0.15;
   pointer-events: none;
+  z-index: 0;
+  animation: blobFloat 12s ease-in-out infinite alternate;
+}
+.blob1 { width: 500px; height: 500px; background: var(--brand); top: -100px; left: -150px; animation-delay: 0s; }
+.blob2 { width: 400px; height: 400px; background: var(--brand2); bottom: -80px; right: -100px; animation-delay: 4s; }
+.blob3 { width: 300px; height: 300px; background: var(--brand3); top: 40%; left: 50%; animation-delay: 8s; }
+
+@keyframes blobFloat {
+  0%   { transform: translate(0,0) scale(1); }
+  100% { transform: translate(30px,40px) scale(1.08); }
 }
 
-.aurora::before,
-.aurora::after {
-  content: "";
-  position: absolute;
-  width: 60vw;
-  height: 60vw;
+.pulse-dot {
+  width: 7px; height: 7px;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  animation: auroraMove 18s linear infinite;
+  background: var(--brand);
+  animation: pulse 1.5s ease-in-out infinite;
+  display: inline-block;
 }
 
-.aurora::before {
-  background: radial-gradient(circle, rgba(59,130,246,0.5), transparent 60%);
-  top: -20%;
-  left: -10%;
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(0.7); }
 }
 
-.aurora::after {
-  background: radial-gradient(circle, rgba(139,92,246,0.5), transparent 60%);
-  bottom: -20%;
-  right: -10%;
-  animation-direction: reverse;
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
-.ripple {
-  position: fixed;
-  width: 20px;
-  height: 20px;
-  background: rgba(59, 130, 246, 0.4);
+.fade-up { animation: fadeUp 0.35s ease both; }
+
+@keyframes aiDot {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40%           { transform: scale(1); opacity: 1; }
+}
+.ai-dot {
+  width: 6px; height: 6px;
   border-radius: 50%;
-  transform: translate(-50%, -50%);
-  pointer-events: none;
-  animation: rippleEffect 0.7s ease-out forwards;
-  z-index: 9999;
+  background: #a99fff;
+  display: inline-block;
+  animation: aiDot 1.2s ease-in-out infinite;
 }
+.ai-dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-dot:nth-child(3) { animation-delay: 0.4s; }
 
-@keyframes rippleEffect {
-  from {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.6;
-  }
-  to {
-    transform: translate(-50%, -50%) scale(12);
-    opacity: 0;
-  }
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }

@@ -1,11 +1,12 @@
-"use client";
-import { usePathname } from "next/navigation";
-import Link from "next/link";
+import type { Metadata } from "next";
 import "./globals.css";
-import Providers from "./providers";
+import Link from "next/link";
+import NavLinks from "@/components/NavLinks";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { useEffect } from "react";
+export const metadata: Metadata = {
+  title: "kealvi — Live Q&A",
+  description: "Ask questions, vote, and get AI-powered answers in real time.",
+};
 
 export default function RootLayout({
   children,
@@ -13,78 +14,56 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body>
-        <Providers>
-          <div className="aurora" />
-          <div className="particles" />
-          <LayoutContent>{children}</LayoutContent>
-        </Providers>
+        <div className="blob blob1" />
+        <div className="blob blob2" />
+        <div className="blob blob3" />
+
+        <div style={{
+          position: "relative",
+          zIndex: 1,
+          maxWidth: "860px",
+          margin: "0 auto",
+          padding: "0 20px",
+        }}>
+          <nav style={{
+            padding: "18px 0 14px",
+            display: "flex",
+            alignItems: "center",
+            borderBottom: "1px solid var(--border)",
+          }}>
+           <Link
+  href="/"
+  style={{
+    fontFamily: "'Syne', sans-serif",
+    fontSize: "24px",
+    fontWeight: 900,
+    marginRight: "auto",
+    textDecoration: "none",
+    display: "inline-block",
+  }}
+>
+  <span
+    style={{
+      background:
+        "linear-gradient(90deg, #3b82f6, #a855f7, #06b6d4)",
+      WebkitBackgroundClip: "text",
+      WebkitTextFillColor: "transparent",
+      fontWeight: 900,
+      letterSpacing: "-0.8px",
+    }}
+  >
+    Kealvi
+  </span>
+</Link>
+
+            <NavLinks />
+          </nav>
+
+          <main>{children}</main>
+        </div>
       </body>
     </html>
-  );
-}
-function LayoutContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-
-  const linkClass = (path: string) =>
-    `block px-3 py-2 rounded-lg transition ${
-      pathname === path
-        ? "bg-gray-200 dark:bg-gray-800 font-medium"
-        : "hover:bg-gray-100 dark:hover:bg-gray-900"
-    }`;
-useEffect(() => {
-  const handleClick = (e: MouseEvent) => {
-    const ripple = document.createElement("span");
-
-    ripple.className = "ripple";
-    ripple.style.left = `${e.clientX}px`;
-    ripple.style.top = `${e.clientY}px`;
-
-    document.body.appendChild(ripple);
-
-    setTimeout(() => {
-      ripple.remove();
-    }, 700);
-  };
-
-  window.addEventListener("click", handleClick);
-
-  return () => window.removeEventListener("click", handleClick);
-}, []);
-  return (
-    <div className="flex min-h-screen">
-
-      {/* SIDEBAR */}
-      <aside className="w-64 border-r border-[var(--border)] p-4 space-y-4 bg-[var(--card)]">
-        <h2 className="text-xl font-bold">My App</h2>
-
-        <nav className="flex flex-col gap-2 text-sm">
-          <Link href="/" className={linkClass("/")}>
-            🏠 Welcome
-          </Link>
-
-          <Link href="/questions" className={linkClass("/questions")}>
-            ❓ Questions
-          </Link>
-
-          <Link href="/polls" className={linkClass("/polls")}>
-            📊 Polls
-          </Link>
-        </nav>
-      </aside>
-
-     <motion.main
-  key={pathname}
-  className="flex-1 p-6"
-  initial={{ opacity: 0, y: 10 }}
-  animate={{ opacity: 1, y: 0 }}
-  exit={{ opacity: 0, y: -10 }}
-  transition={{ duration: 0.25 }}
->
-  {children}
-</motion.main>
-
-    </div>
   );
 }

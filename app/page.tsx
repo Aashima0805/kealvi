@@ -1,28 +1,59 @@
-export default function Page() {
-  return (
-    <div className="space-y-4">
-      <h1 className="text-4xl font-bold">
-        Welcome 👋
-      </h1>
+import HomeCard from "@/components/HomeCard";
 
-      <p className="text-gray-500 dark:text-gray-300">
-        This is a Live Q&A platform where users can ask questions,
-        vote, and get AI-powered answers instantly.
+export default function HomePage() {
+  const cards = [
+    {
+      icon: "❓",
+      title: "Questions",
+      desc: "Ask and answer questions",
+      href: "/questions",
+    },
+    {
+      icon: "📊",
+      title: "Polls",
+      desc: "Create and vote on polls",
+      href: "/polls",
+    },
+    {
+      icon: "🤖",
+      title: "AI Answers",
+      desc: "Get smart AI responses",
+      href: "/questions",
+    },
+  ];
+
+  return (
+    <main style={{ padding: "40px" }}>
+  <h1
+  style={{
+    fontSize: "48px",
+    fontWeight: "900",
+    marginBottom: "10px",
+    background:
+      "linear-gradient(90deg, #3b82f6, #a855f7, #06b6d4)",
+    WebkitBackgroundClip: "text",
+    color: "transparent",
+  }}
+>
+  Welcome to Live Q&A
+</h1>
+
+      <p style={{ marginBottom: "30px", opacity: 0.7 }}>
+        Ask questions, create polls, and get AI-powered answers.
       </p>
 
-      <div className="grid gap-4 mt-6">
-        <div className="p-4 border rounded-xl">
-          ❓ Ask questions and get community answers
-        </div>
-
-        <div className="p-4 border rounded-xl">
-          📊 Create polls and vote in real time
-        </div>
-
-        <div className="p-4 border rounded-xl">
-          🤖 AI helps refine and answer questions
-        </div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gap: "20px",
+           alignItems: "stretch",
+        }}
+      >
+        {cards.map((card) => (
+          <HomeCard key={card.title} card={card} />
+        ))}
       </div>
-    </div>
+    </main>
   );
 }
