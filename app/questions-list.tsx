@@ -31,7 +31,6 @@ export default function QuestionsList({
 
   useEffect(() => setHydrated(true), []);
 
-  // SEARCH
   useEffect(() => {
     const id = setTimeout(async () => {
       const url = query
@@ -45,7 +44,6 @@ export default function QuestionsList({
     return () => clearTimeout(id);
   }, [query]);
 
-  // AI REFINE
   async function refineQuestion() {
     if (!draft.trim()) return;
     const res = await fetch("/api/refine-question", {
@@ -58,7 +56,6 @@ export default function QuestionsList({
     showToast("Question refined! ✨");
   }
 
-  // SUBMIT
   async function submit() {
     if (!draft.trim()) return;
     const res = await fetch("/api/questions", {
@@ -73,7 +70,6 @@ export default function QuestionsList({
     showToast("Question posted! 🎉");
   }
 
-  // UPVOTE
   async function upvote(id: string) {
     setQuestions((qs) =>
       qs.map((q) => q.id === id ? { ...q, votes: q.votes + 1 } : q)
@@ -91,7 +87,6 @@ export default function QuestionsList({
     }
   }
 
-  // DELETE
   async function deleteQuestion(id: string) {
     const res = await fetch(`/api/questions/${id}/delete`, { method: "DELETE" });
     if (!res.ok) { showToast("Delete failed"); return; }
@@ -99,7 +94,6 @@ export default function QuestionsList({
     showToast("Deleted.");
   }
 
-  // EDIT SAVE
   async function saveEdit(id: string) {
     const res = await fetch(`/api/questions/${id}/edit`, {
       method: "PATCH",
@@ -116,7 +110,6 @@ export default function QuestionsList({
     showToast("Updated!");
   }
 
-  // LOAD MORE
   async function loadMore() {
     setLoading(true);
     const res = await fetch(`/api/questions?offset=${questions.length}`);
@@ -126,7 +119,6 @@ export default function QuestionsList({
     setLoading(false);
   }
 
-  // ASK AI
   async function askAI(id: string, question: string) {
     if (aiAnswers[id]) {
       setAiAnswers((prev) => { const u = { ...prev }; delete u[id]; return u; });
@@ -158,14 +150,13 @@ export default function QuestionsList({
   return (
     <div style={{ paddingBottom: "60px" }}>
 
-      {/* Status */}
       {!hydrated && (
-        <p style={{ fontSize: "12px", color: "var(--muted2)", marginBottom: "12px" }}>
+        <p style={{ fontSize: "12px", color: "#6b7280", marginBottom: "12px" }}>
           Loading interactivity…
         </p>
       )}
 
-      {/* ── Ask bar ── */}
+      {/* Ask bar */}
       <SectionTitle>Ask a question</SectionTitle>
 
       <div style={{ position: "relative", marginBottom: "16px" }}>
@@ -182,20 +173,20 @@ export default function QuestionsList({
           rows={2}
           style={{
             width: "100%",
-            background: "var(--surface)",
-            border: "1px solid var(--border2)",
+            background: "#12121A",
+            border: "1px solid rgba(255,255,255,0.13)",
             borderRadius: "16px",
             padding: "16px 160px 16px 20px",
             fontFamily: "'DM Sans', sans-serif",
             fontSize: "15px",
-            color: "var(--text)",
+            color: "#F0EFF8",
             outline: "none",
             resize: "none",
             lineHeight: 1.5,
             transition: "border-color 0.2s",
           }}
-          onFocus={(e) => (e.target.style.borderColor = "var(--brand)")}
-          onBlur={(e) => (e.target.style.borderColor = "var(--border2)")}
+          onFocus={(e) => (e.target.style.borderColor = "#FF4D6D")}
+          onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.13)")}
         />
         <div style={{
           position: "absolute", bottom: "14px", right: "14px",
@@ -210,50 +201,44 @@ export default function QuestionsList({
               background: "rgba(123,97,255,0.12)", color: "#a99fff",
               fontFamily: "'DM Sans', sans-serif", transition: "all 0.18s",
             }}
-          >
-            ✨ Refine
-          </button>
+          >✨ Refine</button>
           <button
             onClick={submit}
             style={{
               padding: "7px 18px", borderRadius: "9px", fontSize: "12.5px",
               fontWeight: 600, cursor: "pointer", border: "none",
-              background: "linear-gradient(135deg, var(--brand), #ff6b35)",
+              background: "linear-gradient(135deg, #FF4D6D, #ff6b35)",
               color: "#fff", fontFamily: "'DM Sans', sans-serif",
               transition: "all 0.18s",
             }}
-          >
-            Ask →
-          </button>
+          >Ask →</button>
         </div>
       </div>
 
-      {/* ── Search ── */}
+      {/* Search */}
       <input
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search questions…"
         style={{
           width: "100%",
-          background: "var(--surface)",
-          border: "1px solid var(--border2)",
+          background: "#12121A",
+          border: "1px solid rgba(255,255,255,0.13)",
           borderRadius: "12px",
           padding: "11px 16px",
           fontFamily: "'DM Sans', sans-serif",
           fontSize: "14px",
-          color: "var(--text)",
+          color: "#F0EFF8",
           outline: "none",
           marginBottom: "28px",
           transition: "border-color 0.2s",
         }}
-        onFocus={(e) => (e.target.style.borderColor = "var(--brand2)")}
-        onBlur={(e) => (e.target.style.borderColor = "var(--border2)")}
+        onFocus={(e) => (e.target.style.borderColor = "#7B61FF")}
+        onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.13)")}
       />
 
-      {/* ── Questions ── */}
-      <SectionTitle>
-        Questions ({questions.length})
-      </SectionTitle>
+      {/* Questions list */}
+      <SectionTitle>Questions ({questions.length})</SectionTitle>
 
       <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
         {questions.map((q, i) => (
@@ -261,8 +246,8 @@ export default function QuestionsList({
             key={q.id}
             className="fade-up"
             style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
+              background: "#12121A",
+              border: "1px solid rgba(255,255,255,0.07)",
               borderRadius: "16px",
               padding: "18px 20px",
               marginBottom: "10px",
@@ -271,13 +256,13 @@ export default function QuestionsList({
             }}
             onMouseEnter={(e) => {
               const d = e.currentTarget as HTMLLIElement;
-              d.style.borderColor = "var(--border2)";
-              d.style.background = "var(--surface2)";
+              d.style.borderColor = "rgba(255,255,255,0.13)";
+              d.style.background = "#1A1A26";
             }}
             onMouseLeave={(e) => {
               const d = e.currentTarget as HTMLLIElement;
-              d.style.borderColor = "var(--border)";
-              d.style.background = "var(--surface)";
+              d.style.borderColor = "rgba(255,255,255,0.07)";
+              d.style.background = "#12121A";
             }}
           >
             <div style={{ display: "flex", alignItems: "flex-start", gap: "14px" }}>
@@ -288,7 +273,7 @@ export default function QuestionsList({
                 alignItems: "center", gap: "4px", minWidth: "36px",
               }}>
                 <VoteBtn
-                  color="var(--brand)"
+                  color="#FF4D6D"
                   hoverBg="rgba(255,77,109,0.1)"
                   onClick={() => upvote(q.id)}
                 >▲</VoteBtn>
@@ -296,11 +281,11 @@ export default function QuestionsList({
                 <span style={{
                   fontFamily: "'Syne', sans-serif",
                   fontSize: "14px", fontWeight: 700,
-                  color: "var(--text)",
+                  color: "#F0EFF8",
                 }}>{q.votes}</span>
 
                 <VoteBtn
-                  color="var(--brand2)"
+                  color="#7B61FF"
                   hoverBg="rgba(123,97,255,0.1)"
                   onClick={() =>
                     setQuestions((qs) =>
@@ -322,10 +307,10 @@ export default function QuestionsList({
                       value={editText}
                       onChange={(e) => setEditText(e.target.value)}
                       style={{
-                        flex: 1, background: "var(--surface2)",
-                        border: "1px solid var(--brand2)",
+                        flex: 1, background: "#1A1A26",
+                        border: "1px solid #7B61FF",
                         borderRadius: "8px", padding: "8px 12px",
-                        color: "var(--text)",
+                        color: "#F0EFF8",
                         fontFamily: "'DM Sans', sans-serif",
                         fontSize: "14px", outline: "none",
                       }}
@@ -335,9 +320,12 @@ export default function QuestionsList({
                   </div>
                 ) : (
                   <>
+                    {/* Question text */}
                     <p style={{
-                      fontSize: "15px", color: "var(--text)",
-                      lineHeight: 1.55, marginBottom: "10px",
+                      fontSize: "15px",
+                      color: "#F0EFF8",
+                      lineHeight: 1.55,
+                      marginBottom: "10px",
                       fontWeight: 500,
                     }}>{q.body}</p>
 
@@ -346,7 +334,7 @@ export default function QuestionsList({
                       display: "flex", alignItems: "center",
                       gap: "10px", flexWrap: "wrap",
                     }}>
-                      <span style={{ fontSize: "12px", color: "var(--muted2)" }}>
+                      <span style={{ fontSize: "12px", color: "rgba(240,239,248,0.25)" }}>
                         {fmt(q.created_at)}
                       </span>
 
@@ -362,7 +350,6 @@ export default function QuestionsList({
                       )}
 
                       <div style={{ display: "flex", gap: "6px", marginLeft: "auto" }}>
-                        {/* Ask AI */}
                         <ActionBtn
                           hoverColor="#a99fff"
                           hoverBorder="rgba(123,97,255,0.4)"
@@ -372,15 +359,13 @@ export default function QuestionsList({
                           🤖 {loadingAI === q.id ? "Thinking…" : aiAnswers[q.id] ? "Hide AI" : "Ask AI"}
                         </ActionBtn>
 
-                        {/* Edit */}
                         <ActionBtn
-                          hoverColor="var(--text)"
-                          hoverBorder="var(--border2)"
-                          hoverBg="var(--surface)"
+                          hoverColor="#F0EFF8"
+                          hoverBorder="rgba(255,255,255,0.13)"
+                          hoverBg="#12121A"
                           onClick={() => { setEditingId(q.id); setEditText(q.body); }}
                         >✏️ Edit</ActionBtn>
 
-                        {/* Delete */}
                         <ActionBtn
                           hoverColor="#ff6b6b"
                           hoverBorder="rgba(255,107,107,0.4)"
@@ -390,23 +375,24 @@ export default function QuestionsList({
                       </div>
                     </div>
 
-                   {/* AI thinking */}
+                    {/* AI thinking — only this one, no duplicates */}
                     {loadingAI === q.id && (
-                      <div style={{ marginTop: "14px", padding: "14px 16px", background: "rgba(123,97,255,0.07)", border: "1px solid rgba(123,97,255,0.18)", borderRadius: "12px" }}>
-                        <div style={{ fontSize: "11px", fontWeight: 600, color: "#a99fff", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>AI Answer</div>
+                      <div style={{
+                        marginTop: "14px", padding: "14px 16px",
+                        background: "rgba(123,97,255,0.07)",
+                        border: "1px solid rgba(123,97,255,0.18)",
+                        borderRadius: "12px",
+                      }}>
+                        <div style={{
+                          fontSize: "11px", fontWeight: 600, color: "#a99fff",
+                          textTransform: "uppercase", letterSpacing: "0.8px",
+                          marginBottom: "8px",
+                        }}>AI Answer</div>
                         <span style={{ color: "#a99fff", fontSize: "13px" }}>Thinking…</span>
                       </div>
                     )}
 
-                    {/* AI answer */}
-                    {aiAnswers[q.id] && (
-                      <div style={{ marginTop: "14px", padding: "14px 16px", background: "rgba(123,97,255,0.07)", border: "1px solid rgba(123,97,255,0.18)", borderRadius: "12px", fontSize: "14px", color: "#F0EFF8", lineHeight: 1.65 }}>
-                        <div style={{ fontSize: "11px", fontWeight: 600, color: "#a99fff", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>AI Answer</div>
-                        {aiAnswers[q.id]}
-                      </div>
-                    )}
-
-                    {/* AI answer */}
+                    {/* AI answer — only this one, no duplicates */}
                     {aiAnswers[q.id] && loadingAI !== q.id && (
                       <div style={{
                         marginTop: "14px", padding: "14px 16px",
@@ -414,7 +400,7 @@ export default function QuestionsList({
                         border: "1px solid rgba(123,97,255,0.18)",
                         borderRadius: "12px",
                         fontSize: "14px",
-                        color: "rgba(240,239,248,0.8)",
+                        color: "#F0EFF8",
                         lineHeight: 1.65,
                       }}>
                         <div style={{
@@ -441,15 +427,15 @@ export default function QuestionsList({
           style={{
             display: "block", margin: "12px auto 0",
             padding: "11px 32px", borderRadius: "12px",
-            border: "1px solid var(--border2)",
-            background: "transparent", color: "var(--muted)",
+            border: "1px solid rgba(255,255,255,0.13)",
+            background: "transparent", color: "rgba(240,239,248,0.45)",
             fontFamily: "'DM Sans', sans-serif",
             fontSize: "13.5px", fontWeight: 500,
             cursor: loading ? "not-allowed" : "pointer",
             transition: "all 0.18s",
           }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--text)"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "var(--muted)"; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F0EFF8"; }}
+          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(240,239,248,0.45)"; }}
         >
           {loading ? "Loading…" : "Load more"}
         </button>
@@ -460,11 +446,11 @@ export default function QuestionsList({
         <div style={{
           position: "fixed", bottom: "28px", left: "50%",
           transform: "translateX(-50%)",
-          background: "var(--surface2)",
-          border: "1px solid var(--border2)",
+          background: "#1A1A26",
+          border: "1px solid rgba(255,255,255,0.13)",
           borderRadius: "12px", padding: "10px 22px",
           fontSize: "13.5px", fontWeight: 500,
-          color: "var(--text)", zIndex: 999, whiteSpace: "nowrap",
+          color: "#F0EFF8", zIndex: 999, whiteSpace: "nowrap",
         }}>
           {toast}
         </div>
@@ -473,20 +459,20 @@ export default function QuestionsList({
   );
 }
 
-/* ── tiny helpers ── */
+/* ── helpers ── */
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div style={{
       fontFamily: "'Syne', sans-serif",
       fontSize: "12px", fontWeight: 600,
-      letterSpacing: "1.5px", color: "var(--muted2)",
+      letterSpacing: "1.5px", color: "rgba(240,239,248,0.25)",
       textTransform: "uppercase",
       margin: "36px 0 14px",
       display: "flex", alignItems: "center", gap: "12px",
     }}>
       {children}
-      <div style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+      <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.07)" }} />
     </div>
   );
 }
@@ -502,8 +488,10 @@ function VoteBtn({ children, color, hoverBg, onClick }: {
       onClick={onClick}
       style={{
         width: "32px", height: "32px", borderRadius: "8px",
-        border: "1px solid var(--border2)", background: "transparent",
-        cursor: "pointer", color: "var(--muted)", fontSize: "15px",
+        border: "1px solid rgba(255,255,255,0.13)",
+        background: "transparent",
+        cursor: "pointer", color: "rgba(240,239,248,0.45)",
+        fontSize: "15px",
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "all 0.15s",
       }}
@@ -515,8 +503,8 @@ function VoteBtn({ children, color, hoverBg, onClick }: {
       }}
       onMouseLeave={(e) => {
         const b = e.currentTarget as HTMLButtonElement;
-        b.style.borderColor = "var(--border2)";
-        b.style.color = "var(--muted)";
+        b.style.borderColor = "rgba(255,255,255,0.13)";
+        b.style.color = "rgba(240,239,248,0.45)";
         b.style.background = "transparent";
       }}
     >{children}</button>
@@ -535,8 +523,10 @@ function ActionBtn({ children, hoverColor, hoverBorder, hoverBg, onClick }: {
       onClick={onClick}
       style={{
         padding: "5px 12px", fontSize: "11.5px", borderRadius: "8px",
-        border: "1px solid var(--border2)", background: "transparent",
-        color: "var(--muted)", cursor: "pointer",
+        border: "1px solid rgba(255,255,255,0.13)",
+        background: "transparent",
+        color: "rgba(240,239,248,0.45)",
+        cursor: "pointer",
         fontFamily: "'DM Sans', sans-serif", fontWeight: 500,
         transition: "all 0.15s",
       }}
@@ -548,8 +538,8 @@ function ActionBtn({ children, hoverColor, hoverBorder, hoverBg, onClick }: {
       }}
       onMouseLeave={(e) => {
         const b = e.currentTarget as HTMLButtonElement;
-        b.style.color = "var(--muted)";
-        b.style.borderColor = "var(--border2)";
+        b.style.color = "rgba(240,239,248,0.45)";
+        b.style.borderColor = "rgba(255,255,255,0.13)";
         b.style.background = "transparent";
       }}
     >{children}</button>
@@ -565,12 +555,13 @@ function IconBtn({ children, onClick }: {
       onClick={onClick}
       style={{
         width: "32px", height: "32px", borderRadius: "8px",
-        border: "1px solid var(--border2)", background: "transparent",
+        border: "1px solid rgba(255,255,255,0.13)",
+        background: "transparent",
         cursor: "pointer", fontSize: "14px",
         display: "flex", alignItems: "center", justifyContent: "center",
         transition: "all 0.15s",
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "var(--surface2)"; }}
+      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "#1A1A26"; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
     >{children}</button>
   );
