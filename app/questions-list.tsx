@@ -425,17 +425,17 @@ export default function QuestionsList({
           onClick={loadMore}
           disabled={loading}
           style={{
-            display: "block", margin: "12px auto 0",
-            padding: "11px 32px", borderRadius: "12px",
-            border: "1px solid rgba(255,255,255,0.13)",
-            background: "transparent", color: "rgba(240,239,248,0.45)",
-            fontFamily: "'DM Sans', sans-serif",
-            fontSize: "13.5px", fontWeight: 500,
-            cursor: loading ? "not-allowed" : "pointer",
-            transition: "all 0.18s",
-          }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#F0EFF8"; }}
-          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "rgba(240,239,248,0.45)"; }}
+  display: "block", margin: "12px auto 0",
+  padding: "11px 32px", borderRadius: "12px",
+  border: "1px solid rgba(0,0,0,0.15)",
+  background: "#ffffff", color: "#6b7280",
+  fontFamily: "'DM Sans', sans-serif",
+  fontSize: "13.5px", fontWeight: 500,
+  cursor: loading ? "not-allowed" : "pointer",
+  transition: "all 0.18s",
+}}
+onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#1a1a2e"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,0,0,0.3)"; }}
+onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.color = "#6b7280"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(0,0,0,0.15)"; }}
         >
           {loading ? "Loading…" : "Load more"}
         </button>
