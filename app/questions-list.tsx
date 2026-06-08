@@ -119,22 +119,31 @@ export default function QuestionsList({
     setLoading(false);
   }
 
-  async function askAI(id: string, question: string) {
-    if (aiAnswers[id]) {
-      setAiAnswers((prev) => { const u = { ...prev }; delete u[id]; return u; });
-      return;
-    }
-    setLoadingAI(id);
+ async function askAI(id: string, question: string) {
+  if (aiAnswers[id]) {
+    setAiAnswers((prev) => { const u = { ...prev }; delete u[id]; return u; });
+    return;
+  }
+  setLoadingAI(id);
+  try {
     const res = await fetch("/api/ai-answer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question }),
     });
     const data = await res.json();
+    if (!res.ok || !data.answer) {
+      showToast("AI is busy — please try again");
+      return;
+    }
     setAiAnswers((prev) => ({ ...prev, [id]: data.answer }));
-    setLoadingAI(null);
     showToast("AI answered! 🤖");
+  } catch (err) {
+    showToast("Network error — try again");
+  } finally {
+    setLoadingAI(null);
   }
+}
 
   function showToast(msg: string) {
     setToast(msg);
