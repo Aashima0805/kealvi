@@ -21,31 +21,51 @@ export async function GET() {
   return Response.json(data);
 }
 export async function POST(req: Request) {
-  const { question, options } = await req.json();
+  try {
+    const { question, options } = await req.json();
 
-  const { data: poll, error } = await supabase
-    .from("polls")
-    .insert({ question })
-    .select()
-    .single();
+    console.log("Question:", question);
+    console.log("Options:", options);
 
-  if (error) {
+    const { data: poll, error } = await supabase
+      .from("polls")
+      .insert({ question })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Poll insert error:", error);
+      return Response.json(
+        { error: error.message },
+        { status: 500 }
+      );
+    }
+
+    const rows = options
+      .filter((o: string) => o.trim())
+      .map((o: string) => ({
+        poll_id: poll.id,
+        option_text: o,
+      }));
+
+    const { error: optionError } = await supabase
+      .from("poll_options")
+      .insert(rows);
+
+    if (optionError) {
+      console.error("Option insert error:", optionError);
+      return Response.json(
+        { error: optionError.message },
+        { status: 500 }
+      );
+    }
+
+    return Response.json({ ok: true });
+  } catch (err) {
+    console.error(err);
     return Response.json(
-      { error: error.message },
+      { error: "Server error" },
       { status: 500 }
     );
   }
-
-  const rows = options
-    .filter((o: string) => o.trim())
-    .map((o: string) => ({
-      poll_id: poll.id,
-      option_text: o,
-    }));
-
-  await supabase
-    .from("poll_options")
-    .insert(rows);
-
-  return Response.json({ ok: true });
 }

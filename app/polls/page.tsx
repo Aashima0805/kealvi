@@ -364,10 +364,10 @@ function GhostBtn({ children, onClick }: { children: React.ReactNode; onClick: (
 function PrimaryBtn({ children, onClick }: { children: React.ReactNode; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      padding: "9px 22px", borderRadius: "10px", border: "none",
-      background: "linear-gradient(135deg, var(--brand2), #4b3fc7)",
-      color: "#fff", fontFamily: "'DM Sans', sans-serif",
-      fontSize: "13.5px", fontWeight: 600, cursor: "pointer", transition: "all 0.18s",
+        padding: "9px 18px", borderRadius: "10px",
+      border: "1px solid var(--border2)", background: "transparent",
+      color: "var(--muted)", fontFamily: "'DM Sans', sans-serif",
+      fontSize: "13.5px", fontWeight: 500, cursor: "pointer", transition: "all 0.15s",
     }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)"; }}
       onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.transform = "translateY(0)"; }}
