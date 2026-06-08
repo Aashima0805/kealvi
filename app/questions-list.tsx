@@ -390,24 +390,19 @@ export default function QuestionsList({
                       </div>
                     </div>
 
-                    {/* AI loading */}
+                   {/* AI thinking */}
                     {loadingAI === q.id && (
-                      <div style={{
-                        marginTop: "14px", padding: "14px 16px",
-                        background: "rgba(123,97,255,0.07)",
-                        border: "1px solid rgba(123,97,255,0.18)",
-                        borderRadius: "12px",
-                      }}>
-                        <div style={{
-                          fontSize: "11px", fontWeight: 600, color: "#a99fff",
-                          textTransform: "uppercase", letterSpacing: "0.8px",
-                          marginBottom: "8px",
-                        }}>AI Answer</div>
-                        <div style={{ display: "flex", gap: "4px" }}>
-                          <span className="ai-dot" />
-                          <span className="ai-dot" />
-                          <span className="ai-dot" />
-                        </div>
+                      <div style={{ marginTop: "14px", padding: "14px 16px", background: "rgba(123,97,255,0.07)", border: "1px solid rgba(123,97,255,0.18)", borderRadius: "12px" }}>
+                        <div style={{ fontSize: "11px", fontWeight: 600, color: "#a99fff", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>AI Answer</div>
+                        <span style={{ color: "#a99fff", fontSize: "13px" }}>Thinking…</span>
+                      </div>
+                    )}
+
+                    {/* AI answer */}
+                    {aiAnswers[q.id] && (
+                      <div style={{ marginTop: "14px", padding: "14px 16px", background: "rgba(123,97,255,0.07)", border: "1px solid rgba(123,97,255,0.18)", borderRadius: "12px", fontSize: "14px", color: "#F0EFF8", lineHeight: 1.65 }}>
+                        <div style={{ fontSize: "11px", fontWeight: 600, color: "#a99fff", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "8px" }}>AI Answer</div>
+                        {aiAnswers[q.id]}
                       </div>
                     )}
 
