@@ -139,7 +139,7 @@ export default function QuestionsList({
     setAiAnswers((prev) => ({ ...prev, [id]: data.answer }));
     showToast("AI answered! 🤖");
   } catch (err) {
-    showToast("Network error — try again");
+    showToast("You exceeded your current quota, please check your plan and billing details");
   } finally {
     setLoadingAI(null);
   }
